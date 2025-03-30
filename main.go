@@ -21,14 +21,20 @@ func main() {
 	userRepo := repository.NewUserRepository(config.DB)
 	profileRepo := repository.NewProfileRepository(config.DB)
 	logRepo := repository.NewMongoRepository(config.MongoDB)
+	deviceRepo := repository.NewDeviceRepository(config.DB)
+	scheduleRepo := repository.NewScheduleRepository(config.DB)
 
 	// Initialize usecase
 	userUsecase := usecase.NewUserUsecase(userRepo, logRepo)
 	profileUsecase := usecase.NewProfileUsecase(profileRepo)
+	deviceUsecase := usecase.NewDeviceUsecase(deviceRepo)
+	scheduleUsecase := usecase.NewScheduleUsecase(scheduleRepo)
 
 	// Initialize handler
 	userHandler := handler.NewUserHandler(userUsecase)
 	profileHandler := handler.NewProfileHandler(profileUsecase)
+	deviceHandler := handler.NewDeviceHandler(deviceUsecase)
+	scheduleHandler := handler.NewScheduleHandler(scheduleUsecase)
 
 	// Setup Gin router
 	r := gin.Default()
@@ -51,6 +57,24 @@ func main() {
 		// Profile routes
 		profile.GET("/details", middleware.AuthMiddleware(), profileHandler.GetProfile)
 		profile.PUT("/update", middleware.AuthMiddleware(), profileHandler.UpdateProfile)
+	}
+
+	device := apiV1.Group("/device")
+	{
+		// Device routes
+		device.POST("/add", deviceHandler.AddDevice)
+		device.GET("/get", deviceHandler.GetDevices)
+		device.PUT("/update", deviceHandler.UpdateDevice)
+		device.DELETE("/remove", deviceHandler.RemoveDevice)
+	}
+
+	schedule := apiV1.Group("/schedule")
+	{
+		// Schedule routes
+		schedule.POST("/add", scheduleHandler.AddSchedule)
+		schedule.GET("/get", scheduleHandler.GetSchedules)
+		schedule.PUT("/update", scheduleHandler.UpdateSchedule)
+		schedule.DELETE("/remove", scheduleHandler.RemoveSchedule)
 	}
 
 	// Start server
